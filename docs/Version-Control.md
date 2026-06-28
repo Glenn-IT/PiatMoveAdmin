@@ -49,12 +49,12 @@ Each `git tag vX.XX` creates a **permanent, immutable snapshot** of the repo at 
 
 | Version | Tag Name | Commit Hash |
 |---------|----------|-------------|
-| v1.00   | v1.00    |             |
-| v1.01   | v1.01    |             |
-| v1.02   | v1.02    |             |
-| v1.03   | v1.03    |             |
-| v1.04   | v1.04    |             |
-| v1.05   | v1.05    |             |
+| v1.00   | v1.00    | 1d6674b263eea82195af3a8e70cec75e0e9e2762 |
+| v1.01   | v1.01    | 72adbf4b5ff7d74964f777c2c7c4662828182e81 |
+| v1.02   | v1.02    | 7c1f71173c9a61156394da853cde0fad1152d615 |
+| v1.03   | v1.03    | c4aee5a630a1128a148be3e5a9052a10540a58ee |
+| v1.04   | v1.04    | ea19d9a5ef101becd77e60ff43ebbbb72cd00f69 |
+| v1.05   | v1.05    | cf0859925bb1e6ef5446e592d6753da8d8cf4a05 |
 
 After all versions are pushed, fill in the hash column by running:
 
