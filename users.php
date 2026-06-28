@@ -5,7 +5,7 @@ require_once __DIR__ . '/includes/auth.php';
 
 $db  = get_db();
 $msg = '';
-$msg_type = 'success'; // used below in alert class
+$msg_type = 'success';
 
 if ($_SERVER['REQUEST_METHOD'] === 'POST') {
     csrf_verify();
@@ -64,7 +64,6 @@ require_once __DIR__ . '/includes/header.php';
     </div>
 <?php endif; ?>
 
-<!-- Filters -->
 <div class="panel" style="margin-bottom:20px">
     <div style="padding:18px 22px">
         <form method="GET" style="display:flex;gap:10px;flex-wrap:wrap;align-items:center">
@@ -87,7 +86,6 @@ require_once __DIR__ . '/includes/header.php';
     </div>
 </div>
 
-<!-- Users Table -->
 <div class="panel">
     <div class="panel-header">
         <span class="panel-title">All Users</span>

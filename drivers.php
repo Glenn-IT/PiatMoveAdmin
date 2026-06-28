@@ -56,7 +56,6 @@ require_once __DIR__ . '/includes/header.php';
     </div>
 <?php endif; ?>
 
-<!-- Filter Pills -->
 <div style="display:flex;gap:8px;margin-bottom:20px;flex-wrap:wrap">
     <?php
     $tabs = ['all'=>'All','pending'=>'Pending','approved'=>'Approved','rejected'=>'Rejected'];

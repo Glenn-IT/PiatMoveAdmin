@@ -10,7 +10,6 @@
 
 <div id="wrapper">
 
-    <!-- ── Sidebar ── -->
     <nav id="sidebar">
         <div class="sidebar-logo">
             <img src="<?= BASE_URL ?>/assets/logo-full.svg" alt="PiatMove">
@@ -68,7 +67,6 @@
         </div>
     </nav>
 
-    <!-- ── Page Content ── -->
     <div id="page-content">
         <header class="topbar">
             <div class="topbar-title"><?= htmlspecialchars($page_title ?? '') ?></div>

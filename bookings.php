@@ -48,7 +48,6 @@ $page_title = 'Bookings';
 require_once __DIR__ . '/includes/header.php';
 ?>
 
-<!-- Filter Pills -->
 <div style="display:flex;gap:8px;margin-bottom:20px;flex-wrap:wrap">
     <?php
     $tabs = ['all'=>'All','pending'=>'Pending','accepted'=>'Accepted','started'=>'Started','completed'=>'Completed','cancelled'=>'Cancelled','rejected'=>'Rejected'];

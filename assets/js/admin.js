@@ -1,4 +1,3 @@
-// Live search filter for tables
 document.addEventListener('DOMContentLoaded', function () {
     const searchInput = document.getElementById('liveSearch');
     if (searchInput) {
@@ -10,7 +9,6 @@ document.addEventListener('DOMContentLoaded', function () {
         });
     }
 
-    // Auto-dismiss alerts after 3s
     document.querySelectorAll('.alert').forEach(function (el) {
         setTimeout(function () {
             const bsAlert = bootstrap.Alert.getOrCreateInstance(el);

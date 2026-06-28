@@ -1,6 +1,6 @@
-        </div><!-- .content-body -->
-    </div><!-- #page-content -->
-</div><!-- #wrapper -->
+        </div>
+    </div>
+</div>
 
 <script src="<?= BASE_URL ?>/assets/js/admin.js"></script>
 </body>

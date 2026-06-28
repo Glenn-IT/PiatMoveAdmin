@@ -42,7 +42,6 @@ function status_badge(string $status): string {
 }
 ?>
 
-<!-- Stat Cards -->
 <div class="stats-grid">
     <div class="stat-card">
         <div>
@@ -102,7 +101,6 @@ function status_badge(string $status): string {
     </div>
 </div>
 
-<!-- Recent Bookings -->
 <div class="panel">
     <div class="panel-header">
         <span class="panel-title">Recent Bookings</span>

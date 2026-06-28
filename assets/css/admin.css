@@ -1,9 +1,6 @@
-/* ── Fonts ────────────────────────────────────────────────── */
 @import url('https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@400;500;600;700;800&family=Public+Sans:wght@400;500;600;700&family=JetBrains+Mono:wght@400;500&display=swap');
 
-/* ── Design Tokens ───────────────────────────────────────── */
 :root {
-  /* Colors — Blue primary */
   --blue-50:  #EFF5FF;
   --blue-100: #DBE7FE;
   --blue-200: #BFD3FE;
@@ -12,13 +9,11 @@
   --blue-700: #1D43B8;
   --blue-800: #1D3C94;
 
-  /* Colors — Green secondary */
   --green-50:  #ECFDF3;
   --green-500: #12B76A;
   --green-600: #039855;
   --green-700: #027A48;
 
-  /* Colors — Neutral slate */
   --gray-0:   #FFFFFF;
   --gray-50:  #F8FAFC;
   --gray-100: #F1F5F9;
@@ -31,7 +26,6 @@
   --gray-800: #1E293B;
   --gray-900: #0F172A;
 
-  /* Status */
   --amber-50:  #FFFAEB;
   --amber-500: #F79009;
   --amber-700: #B54708;
@@ -42,7 +36,6 @@
   --cyan-500:  #06AED4;
   --cyan-700:  #0E7090;
 
-  /* Semantic aliases */
   --color-primary:       var(--blue-600);
   --color-primary-hover: var(--blue-700);
   --color-primary-soft:  var(--blue-50);
@@ -74,7 +67,6 @@
 
   --gradient-hero: linear-gradient(150deg, var(--blue-600) 0%, var(--blue-700) 55%, var(--blue-800) 100%);
 
-  /* Typography */
   --font-display: 'Plus Jakarta Sans', system-ui, sans-serif;
   --font-body:    'Public Sans', system-ui, sans-serif;
   --font-mono:    'JetBrains Mono', ui-monospace, monospace;
@@ -85,7 +77,6 @@
   --fw-bold:     700;
   --fw-extrabold:800;
 
-  /* Spacing */
   --space-1: 4px;
   --space-2: 8px;
   --space-3: 12px;
@@ -94,7 +85,6 @@
   --space-6: 24px;
   --space-8: 32px;
 
-  /* Radii */
   --radius-xs: 6px;
   --radius-sm: 10px;
   --radius-md: 14px;
@@ -102,20 +92,17 @@
   --radius-xl: 28px;
   --radius-pill: 999px;
 
-  /* Shadows */
   --shadow-xs: 0 1px 2px rgba(15,23,42,0.06);
   --shadow-sm: 0 1px 3px rgba(15,23,42,0.08), 0 1px 2px rgba(15,23,42,0.04);
   --shadow-md: 0 4px 12px rgba(15,23,42,0.08), 0 2px 4px rgba(15,23,42,0.04);
   --shadow-lg: 0 12px 28px rgba(15,23,42,0.12), 0 4px 8px rgba(15,23,42,0.05);
   --shadow-focus: 0 0 0 4px rgba(36,84,224,0.16);
 
-  /* Motion */
   --ease-standard: cubic-bezier(0.2,0,0,1);
   --dur-fast: 140ms;
   --dur-base: 220ms;
 }
 
-/* ── Reset & Base ────────────────────────────────────────── */
 *, *::before, *::after { box-sizing: border-box; }
 
 body {
@@ -139,13 +126,11 @@ p { margin: 0; }
 a { color: var(--text-link); }
 ::selection { background: var(--blue-200); }
 
-/* ── Layout ──────────────────────────────────────────────── */
 #wrapper {
   display: flex;
   min-height: 100vh;
 }
 
-/* ── Sidebar — WHITE (design system spec) ────────────────── */
 #sidebar {
   width: 244px;
   min-width: 244px;
@@ -286,7 +271,6 @@ a { color: var(--text-link); }
   color: var(--red-500);
 }
 
-/* ── Page Content ────────────────────────────────────────── */
 #page-content {
   flex: 1;
   display: flex;
@@ -294,7 +278,6 @@ a { color: var(--text-link); }
   min-width: 0;
 }
 
-/* ── Topbar ──────────────────────────────────────────────── */
 .topbar {
   height: 68px;
   flex-shrink: 0;
@@ -324,13 +307,11 @@ a { color: var(--text-link); }
   font-weight: var(--fw-medium);
 }
 
-/* ── Content Body ────────────────────────────────────────── */
 .content-body {
   padding: 28px;
   flex: 1;
 }
 
-/* ── Stat Cards ──────────────────────────────────────────── */
 .stats-grid {
   display: grid;
   grid-template-columns: repeat(4, 1fr);
@@ -398,7 +379,6 @@ a { color: var(--text-link); }
 .stat-icon.cyan   { background: var(--cyan-50);   color: var(--cyan-700);  }
 .stat-icon.red    { background: var(--red-50);    color: var(--red-700);   }
 
-/* ── Panel / Card ────────────────────────────────────────── */
 .panel {
   background: var(--surface-card);
   border: 1px solid var(--border-subtle);
@@ -422,7 +402,6 @@ a { color: var(--text-link); }
   color: var(--text-strong);
 }
 
-/* ── Table ───────────────────────────────────────────────── */
 .data-table {
   width: 100%;
   border-collapse: collapse;
@@ -468,7 +447,6 @@ a { color: var(--text-link); }
 
 .data-table tbody tr:hover { background: var(--gray-50); }
 
-/* Cell helpers */
 .cell-strong {
   font-weight: var(--fw-semibold);
   color: var(--text-strong);
@@ -492,7 +470,6 @@ a { color: var(--text-link); }
   margin-top: 2px;
 }
 
-/* ── Badges ──────────────────────────────────────────────── */
 .badge {
   display: inline-flex;
   align-items: center;
@@ -521,7 +498,6 @@ a { color: var(--text-link); }
 .badge-info     { background: var(--cyan-50);   color: var(--cyan-700);  }
 .badge-neutral  { background: var(--gray-100);  color: var(--gray-600);  }
 
-/* ── Buttons ─────────────────────────────────────────────── */
 .btn-primary-ds {
   display: inline-flex;
   align-items: center;
@@ -621,7 +597,6 @@ a { color: var(--text-link); }
 
 .btn-neutral-sm:hover { background: var(--gray-100); }
 
-/* ── Forms ───────────────────────────────────────────────── */
 .form-input {
   height: 40px;
   padding: 0 14px;
@@ -662,7 +637,6 @@ a { color: var(--text-link); }
   box-shadow: var(--shadow-focus);
 }
 
-/* Filter pills */
 .filter-pill {
   display: inline-flex;
   align-items: center;
@@ -689,7 +663,6 @@ a { color: var(--text-link); }
   color: #fff;
 }
 
-/* ── Alert ───────────────────────────────────────────────── */
 .alert-ds {
   display: flex;
   align-items: center;
@@ -704,7 +677,6 @@ a { color: var(--text-link); }
 .alert-success { background: var(--green-50);  color: var(--green-700);  border: 1px solid #A6F4C5; }
 .alert-danger  { background: var(--red-50);    color: var(--red-700);    border: 1px solid #FECDCA; }
 
-/* ── Login Page ──────────────────────────────────────────── */
 .login-body {
   background: var(--gradient-hero);
   min-height: 100vh;
@@ -828,7 +800,6 @@ a { color: var(--text-link); }
   margin-bottom: 20px;
 }
 
-/* ── Utilities ───────────────────────────────────────────── */
 .text-mono   { font-family: var(--font-mono); }
 .text-strong { color: var(--text-strong); font-weight: var(--fw-semibold); }
 .text-muted  { color: var(--text-muted);  }
