@@ -11,26 +11,53 @@ if (isset($_SESSION['admin_id'])) {
 
 $error = '';
 
+$lockout_remaining = 0;
+if (isset($_SESSION['lockout_until']) && $_SESSION['lockout_until'] > time()) {
+    $lockout_remaining = $_SESSION['lockout_until'] - time();
+} elseif (isset($_SESSION['lockout_until'])) {
+    unset($_SESSION['lockout_until']);
+    unset($_SESSION['login_attempts']);
+}
+
 if ($_SERVER['REQUEST_METHOD'] === 'POST') {
-    $email = trim($_POST['email'] ?? '');
-    $pass  =      $_POST['password'] ?? '';
+    if ($lockout_remaining > 0) {
+        $error = 'Too many failed attempts. Please wait ' . $lockout_remaining . ' seconds and try again.';
+    } else {
+        $email = trim($_POST['email'] ?? '');
+        $pass  =      $_POST['password'] ?? '';
+        $ok    = false;
 
-    if ($email && $pass) {
-        $db   = get_db();
-        $stmt = $db->prepare('SELECT id, name, password FROM admins WHERE email = ?');
-        $stmt->execute([$email]);
-        $admin = $stmt->fetch();
+        if ($email && $pass) {
+            $db   = get_db();
+            // BINARY forces a case-sensitive comparison (column collation is case-insensitive by default)
+            $stmt = $db->prepare('SELECT id, name, password FROM admins WHERE BINARY email = BINARY ?');
+            $stmt->execute([$email]);
+            $admin = $stmt->fetch();
 
-        if ($admin && password_verify($pass, $admin['password'])) {
-            session_regenerate_id(true);
-            $_SESSION['admin_id']   = $admin['id'];
-            $_SESSION['admin_name'] = $admin['name'];
-            $_SESSION['csrf_token'] = bin2hex(random_bytes(32));
-            header('Location: ' . BASE_URL . '/dashboard.php');
-            exit;
+            if ($admin && password_verify($pass, $admin['password'])) {
+                $ok = true;
+                session_regenerate_id(true);
+                unset($_SESSION['login_attempts'], $_SESSION['lockout_until']);
+                $_SESSION['admin_id']   = $admin['id'];
+                $_SESSION['admin_name'] = $admin['name'];
+                $_SESSION['csrf_token'] = bin2hex(random_bytes(32));
+                header('Location: ' . BASE_URL . '/dashboard.php');
+                exit;
+            }
+        }
+
+        if (!$ok) {
+            $_SESSION['login_attempts'] = ($_SESSION['login_attempts'] ?? 0) + 1;
+            if ($_SESSION['login_attempts'] >= 3) {
+                $_SESSION['login_attempts'] = 0;
+                $_SESSION['lockout_until']  = time() + 30;
+                $lockout_remaining = 30;
+                $error = 'Too many failed attempts. Please wait 30 seconds and try again.';
+            } else {
+                $error = 'Invalid email or password.';
+            }
         }
     }
-    $error = 'Invalid email or password.';
 }
 ?>
 <!DOCTYPE html>
@@ -87,7 +114,9 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
             <a href="<?= BASE_URL ?>/forgot-password.php" style="font-size:12px;color:var(--text-link);text-decoration:none;font-weight:500">Forgot password?</a>
         </div>
 
-        <button type="submit" class="login-btn">Sign In</button>
+        <button type="submit" class="login-btn" id="loginBtn"<?= $lockout_remaining > 0 ? ' disabled' : '' ?>>
+            <?= $lockout_remaining > 0 ? 'Try again in ' . $lockout_remaining . 's' : 'Sign In' ?>
+        </button>
     </form>
 
     <p class="login-trust">Secured by the Municipality of Piat &middot; Authorized personnel only</p>
@@ -105,6 +134,23 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
         show.style.display = visible ? '' : 'none';
         hide.style.display = visible ? 'none' : '';
     });
+}());
+
+(function () {
+    var remaining = <?= (int) $lockout_remaining ?>;
+    if (remaining <= 0) return;
+
+    var loginBtn = document.getElementById('loginBtn');
+    var timer = setInterval(function () {
+        remaining--;
+        if (remaining <= 0) {
+            clearInterval(timer);
+            loginBtn.disabled = false;
+            loginBtn.textContent = 'Sign In';
+        } else {
+            loginBtn.textContent = 'Try again in ' + remaining + 's';
+        }
+    }, 1000);
 }());
 </script>
 </body>
