@@ -23,17 +23,35 @@ $filter  = $_GET['filter'] ?? 'all';
 $allowed = ['all', 'pending', 'approved', 'rejected'];
 if (!in_array($filter, $allowed)) $filter = 'all';
 
+$search = trim($_GET['q'] ?? '');
+
 $base_sql = "SELECT u.id, u.name, u.email, u.phone, u.status, u.created_at,
                     d.license_no, d.vehicle_no, d.vehicle_type, d.approval_status, d.is_online
              FROM users u
              JOIN driver_info d ON d.user_id = u.id";
 
+$where  = [];
+$params = [];
+
 if ($filter !== 'all') {
-    $stmt = $db->prepare($base_sql . " WHERE d.approval_status = ? ORDER BY FIELD(d.approval_status,'pending','approved','rejected'), u.created_at DESC");
-    $stmt->execute([$filter]);
-} else {
-    $stmt = $db->query($base_sql . " ORDER BY FIELD(d.approval_status,'pending','approved','rejected'), u.created_at DESC");
+    $where[]  = 'd.approval_status = ?';
+    $params[] = $filter;
 }
+if ($search) {
+    $where[]  = '(u.name LIKE ? OR u.email LIKE ? OR u.phone LIKE ? OR d.license_no LIKE ? OR d.vehicle_no LIKE ?)';
+    $params[] = "%$search%";
+    $params[] = "%$search%";
+    $params[] = "%$search%";
+    $params[] = "%$search%";
+    $params[] = "%$search%";
+}
+
+$sql = $base_sql
+     . ($where ? ' WHERE ' . implode(' AND ', $where) : '')
+     . " ORDER BY FIELD(d.approval_status,'pending','approved','rejected'), u.created_at DESC";
+
+$stmt = $db->prepare($sql);
+$stmt->execute($params);
 $drivers = $stmt->fetchAll();
 
 $counts_raw = $db->query(
@@ -56,13 +74,32 @@ require_once __DIR__ . '/includes/header.php';
     </div>
 <?php endif; ?>
 
+<div class="panel" style="margin-bottom:20px">
+    <div style="padding:18px 22px">
+        <form method="GET" style="display:flex;gap:10px;flex-wrap:wrap;align-items:center">
+            <input type="hidden" name="filter" value="<?= htmlspecialchars($filter) ?>">
+            <input type="text" name="q" class="form-input" style="width:280px"
+                   placeholder="Search name, email, phone, license, vehicle…"
+                   value="<?= htmlspecialchars($search) ?>">
+            <button type="submit" class="btn-primary-ds">
+                <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><circle cx="11" cy="11" r="8"/><line x1="21" y1="21" x2="16.65" y2="16.65"/></svg>
+                Search
+            </button>
+            <?php if ($search): ?>
+                <a href="?filter=<?= urlencode($filter) ?>" class="btn-ghost">Clear</a>
+            <?php endif; ?>
+        </form>
+    </div>
+</div>
+
 <div style="display:flex;gap:8px;margin-bottom:20px;flex-wrap:wrap">
     <?php
     $tabs = ['all'=>'All','pending'=>'Pending','approved'=>'Approved','rejected'=>'Rejected'];
     foreach ($tabs as $key => $label):
         $cnt = $counts[$key] ?? 0;
+        $qs  = 'filter=' . $key . ($search ? '&q=' . urlencode($search) : '');
     ?>
-        <a href="?filter=<?= $key ?>" class="filter-pill <?= $filter === $key ? 'active' : '' ?>">
+        <a href="?<?= $qs ?>" class="filter-pill <?= $filter === $key ? 'active' : '' ?>">
             <?= $label ?>
             <?php if ($cnt > 0): ?>
                 <span style="background:<?= $filter === $key ? 'rgba(255,255,255,.25)' : 'var(--gray-100)' ?>;color:<?= $filter === $key ? '#fff' : 'var(--text-muted)' ?>;padding:1px 7px;border-radius:var(--radius-pill);font-size:11px;font-weight:700">
