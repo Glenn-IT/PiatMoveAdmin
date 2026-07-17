@@ -54,7 +54,8 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
                 $lockout_remaining = 30;
                 $error = 'Too many failed attempts. Please wait 30 seconds and try again.';
             } else {
-                $error = 'Invalid email or password.';
+                $attempts_left = 3 - $_SESSION['login_attempts'];
+                $error = 'Invalid email or password. ' . $attempts_left . ' attempt' . ($attempts_left === 1 ? '' : 's') . ' left before lockout.';
             }
         }
     }
