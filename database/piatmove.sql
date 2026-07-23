@@ -87,6 +87,7 @@ CREATE TABLE `driver_info` (
   `license_no` varchar(50) NOT NULL,
   `vehicle_no` varchar(50) NOT NULL,
   `vehicle_type` varchar(50) NOT NULL,
+  `barangay` varchar(50) NOT NULL,
   `approval_status` enum('pending','approved','rejected') NOT NULL DEFAULT 'pending',
   `is_online` tinyint(1) NOT NULL DEFAULT 0,
   `current_lat` decimal(10,7) DEFAULT NULL,
@@ -99,10 +100,10 @@ CREATE TABLE `driver_info` (
 -- Dumping data for table `driver_info`
 --
 
-INSERT INTO `driver_info` (`id`, `user_id`, `license_no`, `vehicle_no`, `vehicle_type`, `approval_status`, `is_online`, `current_lat`, `current_lng`, `created_at`, `updated_at`) VALUES
-(1, 3, 'LIC-001', 'ABC-1234', 'Sedan', 'approved', 0, NULL, NULL, '2026-06-26 11:41:30', '2026-06-26 12:23:32'),
-(2, 5, 'LIC-002', 'ABC-2234', 'Sedan', 'approved', 0, NULL, NULL, '2026-06-26 12:00:17', '2026-06-26 12:03:21'),
-(3, 8, 'GAB7253', 'BAHS782', 'Tricycle', 'approved', 1, NULL, NULL, '2026-06-26 17:05:04', '2026-06-26 17:06:50');
+INSERT INTO `driver_info` (`id`, `user_id`, `license_no`, `vehicle_no`, `vehicle_type`, `barangay`, `approval_status`, `is_online`, `current_lat`, `current_lng`, `created_at`, `updated_at`) VALUES
+(1, 3, 'LIC-001', 'ABC-1234', 'Sedan', 'Poblacion I', 'approved', 0, NULL, NULL, '2026-06-26 11:41:30', '2026-06-26 12:23:32'),
+(2, 5, 'LIC-002', 'ABC-2234', 'Sedan', 'Poblacion II', 'approved', 0, NULL, NULL, '2026-06-26 12:00:17', '2026-06-26 12:03:21'),
+(3, 8, 'GAB7253', 'BAHS782', 'Tricycle', 'Santa Barbara', 'approved', 1, NULL, NULL, '2026-06-26 17:05:04', '2026-06-26 17:06:50');
 
 -- --------------------------------------------------------
 

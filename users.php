@@ -15,7 +15,7 @@ if (!empty($_SESSION['flash_msg'])) {
 $create_errors = [];
 $open_modal = false;
 $form = ['name' => '', 'email' => '', 'phone' => '', 'role' => 'passenger',
-          'license_no' => '', 'vehicle_no' => '', 'vehicle_type' => ''];
+          'license_no' => '', 'vehicle_no' => '', 'vehicle_type' => '', 'barangay' => ''];
 
 if ($_SERVER['REQUEST_METHOD'] === 'POST') {
     csrf_verify();
@@ -33,6 +33,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
             $form['license_no']   = trim($_POST['license_no'] ?? '');
             $form['vehicle_no']   = trim($_POST['vehicle_no'] ?? '');
             $form['vehicle_type'] = 'Tricycle';
+            $form['barangay']     = trim($_POST['barangay'] ?? '');
         }
 
         if ($form['name'] === '') $create_errors['name'] = 'Name is required.';
@@ -43,6 +44,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
         if ($form['role'] === 'driver') {
             if ($form['license_no'] === '') $create_errors['license_no'] = 'License number is required.';
             if ($form['vehicle_no'] === '')  $create_errors['vehicle_no'] = 'Vehicle number is required.';
+            if ($form['barangay'] === '')    $create_errors['barangay']  = 'Barangay is required.';
         }
 
         if (!$create_errors) {
@@ -67,8 +69,8 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
             $newUserId = (int)$db->lastInsertId();
 
             if ($form['role'] === 'driver') {
-                $db->prepare('INSERT INTO driver_info (user_id, license_no, vehicle_no, vehicle_type, approval_status) VALUES (?, ?, ?, ?, ?)')
-                   ->execute([$newUserId, $form['license_no'], $form['vehicle_no'], $form['vehicle_type'], 'approved']);
+                $db->prepare('INSERT INTO driver_info (user_id, license_no, vehicle_no, vehicle_type, barangay, approval_status) VALUES (?, ?, ?, ?, ?, ?)')
+                   ->execute([$newUserId, $form['license_no'], $form['vehicle_no'], $form['vehicle_type'], $form['barangay'], 'approved']);
             }
             $db->commit();
 
@@ -283,6 +285,21 @@ require_once __DIR__ . '/includes/header.php';
                         <label class="form-label" for="au-vehicle-type">Vehicle Type</label>
                         <input type="text" id="au-vehicle-type" class="form-input" value="Tricycle" disabled>
                         <input type="hidden" name="vehicle_type" value="Tricycle">
+                    </div>
+                    <div>
+                        <label class="form-label" for="au-barangay">Barangay</label>
+                        <select name="barangay" id="au-barangay" class="form-select" style="width:100%">
+                            <option value="" disabled <?= $form['barangay'] === '' ? 'selected' : '' ?>>Select Barangay</option>
+                            <?php foreach ([
+                                'Apayao', 'Aquib', 'Baung', 'Calaoagan', 'Catarauan', 'Dugayung',
+                                'Gumarueng', 'Macapil', 'Maguilling', 'Minanga', 'Poblacion I',
+                                'Poblacion II', 'Santa Barbara', 'Santo Domingo', 'Sicatna',
+                                'Villa Rey (San Gaspar)', 'Villa Reyno', 'Warat',
+                            ] as $brgy): ?>
+                                <option value="<?= htmlspecialchars($brgy) ?>" <?= $form['barangay'] === $brgy ? 'selected' : '' ?>><?= htmlspecialchars($brgy) ?></option>
+                            <?php endforeach; ?>
+                        </select>
+                        <?php if (!empty($create_errors['barangay'])): ?><div class="form-error"><?= htmlspecialchars($create_errors['barangay']) ?></div><?php endif; ?>
                     </div>
                 </div>
             </div>

@@ -2,6 +2,7 @@
 require_once __DIR__ . '/config.php';
 require_once __DIR__ . '/includes/db.php';
 require_once __DIR__ . '/includes/auth.php';
+require_once __DIR__ . '/includes/charts.php';
 
 $db = get_db();
 
@@ -23,23 +24,36 @@ $recent = $db->query(
      LIMIT 8"
 )->fetchAll();
 
+// Booking history — daily counts for the last 30 days
+$bh_rows = $db->query(
+    "SELECT DATE(created_at) AS d, COUNT(*) AS c FROM bookings
+     WHERE created_at >= CURDATE() - INTERVAL 29 DAY
+     GROUP BY DATE(created_at)"
+)->fetchAll(PDO::FETCH_KEY_PAIR);
+
+$booking_history = [];
+for ($i = 29; $i >= 0; $i--) {
+    $d = date('Y-m-d', strtotime("-$i days"));
+    $booking_history[$d] = (int)($bh_rows[$d] ?? 0);
+}
+
+// Tricycle driver registrants per barangay
+$barangay_counts = $db->query(
+    "SELECT barangay, COUNT(*) AS c FROM driver_info
+     WHERE vehicle_type = 'Tricycle' AND barangay <> ''
+     GROUP BY barangay ORDER BY c DESC"
+)->fetchAll(PDO::FETCH_KEY_PAIR);
+
+// Registered (approved) vs not approved yet (pending) vs rejected
+$approval_counts = $db->query(
+    "SELECT approval_status, COUNT(*) AS c FROM driver_info GROUP BY approval_status"
+)->fetchAll(PDO::FETCH_KEY_PAIR);
+$approved_count = (int)($approval_counts['approved'] ?? 0);
+$pending_count  = (int)($approval_counts['pending'] ?? 0);
+$rejected_count = (int)($approval_counts['rejected'] ?? 0);
+
 $page_title = 'Dashboard';
 require_once __DIR__ . '/includes/header.php';
-
-function status_badge(string $status): string {
-    $map = [
-        'pending'   => 'neutral',
-        'accepted'  => 'primary',
-        'started'   => 'info',
-        'completed' => 'success',
-        'cancelled' => 'danger',
-        'rejected'  => 'warning',
-    ];
-    $cls = $map[$status] ?? 'neutral';
-    return '<span class="badge badge-' . htmlspecialchars($cls, ENT_QUOTES) . '">'
-         . htmlspecialchars(ucfirst($status), ENT_QUOTES)
-         . '</span>';
-}
 ?>
 
 <div class="stats-grid">
@@ -97,6 +111,51 @@ function status_badge(string $status): string {
             <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
                 <path d="M22 11.08V12a10 10 0 1 1-5.93-9.14"/><polyline points="22 4 12 14.01 9 11.01"/>
             </svg>
+        </div>
+    </div>
+</div>
+
+<div class="panel" style="margin-bottom:24px">
+    <div class="panel-header">
+        <span class="panel-title">Booking History</span>
+        <span class="text-muted" style="font-size:12px">Last 30 days</span>
+    </div>
+    <div class="chart-panel-body">
+        <?= render_booking_history_chart($booking_history) ?>
+    </div>
+</div>
+
+<div class="charts-grid">
+    <div class="panel">
+        <div class="panel-header">
+            <span class="panel-title">Tricycle Drivers per Barangay</span>
+        </div>
+        <div class="chart-panel-body">
+            <?= render_bar_rows($barangay_counts, 'var(--blue-500)', 'No tricycle drivers registered yet.') ?>
+        </div>
+    </div>
+
+    <div class="panel">
+        <div class="panel-header">
+            <span class="panel-title">Registered vs. Unregistered</span>
+        </div>
+        <div class="chart-panel-body">
+            <?php
+            $approval_items = ['Approved' => $approved_count, 'Unregistered' => $pending_count];
+            if ($rejected_count > 0) $approval_items['Rejected'] = $rejected_count;
+            $approval_colors = ['Approved' => 'var(--green-500)', 'Unregistered' => 'var(--amber-500)', 'Rejected' => 'var(--red-500)'];
+            if (array_sum($approval_items) === 0):
+            ?>
+                <div class="chart-empty">No drivers registered yet.</div>
+            <?php else: foreach ($approval_items as $label => $count): $pct = array_sum($approval_items) > 0 ? round(($count / max($approval_items)) * 100, 1) : 0; ?>
+                <div class="chart-bar-row">
+                    <div class="chart-bar-label" style="width:170px">
+                        <span class="chart-legend-dot" style="background:<?= $approval_colors[$label] ?>"></span><?= htmlspecialchars($label) ?>
+                    </div>
+                    <div class="chart-bar-track"><div class="chart-bar-fill" style="width:<?= $pct ?>%;background:<?= $approval_colors[$label] ?>"></div></div>
+                    <div class="chart-bar-value"><?= number_format($count) ?></div>
+                </div>
+            <?php endforeach; endif; ?>
         </div>
     </div>
 </div>
