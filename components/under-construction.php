@@ -1,5 +1,5 @@
 <?php
-define('CURRENT_VERSION', 'v4.00');
+define('CURRENT_VERSION', 'v5.00');
 
 require_once __DIR__ . '/../config.php';
 if (session_status() === PHP_SESSION_NONE) session_start();

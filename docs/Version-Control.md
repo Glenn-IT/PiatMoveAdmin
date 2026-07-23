@@ -12,6 +12,7 @@
 | v1.05   | 6    | Profile (Full System)| profile.php                             | —                                                              |
 | v2.00   | —    | Dashboard/Users/Drivers Build | dashboard.php, users.php, drivers.php | bookings.php, profile.php                                      |
 | v4.00   | —    | Reports Tab           | report.php                              | bookings.php, profile.php                                      |
+| v5.00   | —    | Full System Unlock    | bookings.php, profile.php               | —                                                                |
 
 ---
 
@@ -59,6 +60,7 @@ Each `git tag vX.XX` creates a **permanent, immutable snapshot** of the repo at 
 | v1.05   | v1.05    | cf0859925bb1e6ef5446e592d6753da8d8cf4a05 |
 | v2.00   | v2.00    | 2e47240572d248f5591ca9f9b39b9561c4ae781c |
 | v4.00   | v4.00    | 5ca91b86359848d7222bd880300814c15c5d2468 |
+| v5.00   | v5.00    | (fill in after tagging) |
 
 After all versions are pushed, fill in the hash column by running:
 
