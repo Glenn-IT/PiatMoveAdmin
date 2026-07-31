@@ -26,7 +26,8 @@ if (!in_array($filter, $allowed)) $filter = 'all';
 $search = trim($_GET['q'] ?? '');
 
 $base_sql = "SELECT u.id, u.name, u.email, u.phone, u.status, u.created_at,
-                    d.license_no, d.vehicle_no, d.vehicle_type, d.approval_status, d.is_online
+                    d.license_no, d.vehicle_no, d.vehicle_type, d.barangay, d.approval_status, d.is_online,
+                    d.plate_proof_path, d.license_proof_path, d.photo_path
              FROM users u
              JOIN driver_info d ON d.user_id = u.id";
 
@@ -123,12 +124,21 @@ require_once __DIR__ . '/includes/header.php';
                     <th>Phone</th>
                     <th>License No.</th>
                     <th>Vehicle</th>
+                    <th>Documents</th>
                     <th>Online</th>
                     <th>Approval</th>
                     <th>Actions</th>
                 </tr>
             </thead>
             <tbody>
+                <?php
+                $doc_labels = [
+                    'plate_proof_path'   => 'Plate Proof',
+                    'license_proof_path' => 'License Proof',
+                    'photo_path'         => 'Driver Photo',
+                ];
+                $image_ext = ['jpg', 'jpeg', 'png', 'gif', 'webp'];
+                ?>
                 <?php foreach ($drivers as $d): ?>
                 <tr>
                     <td>
@@ -140,6 +150,30 @@ require_once __DIR__ . '/includes/header.php';
                     <td>
                         <div class="cell-strong"><?= htmlspecialchars($d['vehicle_no']) ?></div>
                         <div class="cell-sub"><?= htmlspecialchars($d['vehicle_type']) ?></div>
+                    </td>
+                    <td>
+                        <div style="display:flex;gap:6px;flex-wrap:wrap">
+                            <?php
+                            $hasDocs = false;
+                            foreach ($doc_labels as $col => $label):
+                                $path = $d[$col] ?? null;
+                                if (!$path) continue;
+                                $hasDocs = true;
+                                $ext = strtolower(pathinfo($path, PATHINFO_EXTENSION));
+                                $url = BASE_URL . '/' . ltrim($path, '/');
+                            ?>
+                                <a href="<?= htmlspecialchars($url) ?>" target="_blank" rel="noopener" title="<?= htmlspecialchars($label) ?>">
+                                    <?php if (in_array($ext, $image_ext, true)): ?>
+                                        <img src="<?= htmlspecialchars($url) ?>" alt="<?= htmlspecialchars($label) ?>" style="width:32px;height:32px;object-fit:cover;border-radius:4px;border:1px solid var(--gray-100)">
+                                    <?php else: ?>
+                                        <span class="badge badge-neutral"><?= htmlspecialchars($label) ?></span>
+                                    <?php endif; ?>
+                                </a>
+                            <?php endforeach; ?>
+                            <?php if (!$hasDocs): ?>
+                                <span class="text-muted">&mdash;</span>
+                            <?php endif; ?>
+                        </div>
                     </td>
                     <td>
                         <?php if ($d['is_online']): ?>
@@ -157,6 +191,22 @@ require_once __DIR__ . '/includes/header.php';
                     </td>
                     <td>
                         <div class="actions-cell">
+                            <button type="button" class="btn-neutral-sm view-driver-btn"
+                                    data-name="<?= htmlspecialchars($d['name']) ?>"
+                                    data-email="<?= htmlspecialchars($d['email']) ?>"
+                                    data-phone="<?= htmlspecialchars($d['phone']) ?>"
+                                    data-status="<?= htmlspecialchars(ucfirst($d['status'])) ?>"
+                                    data-license="<?= htmlspecialchars($d['license_no']) ?>"
+                                    data-vehicle="<?= htmlspecialchars($d['vehicle_no']) ?>"
+                                    data-vehicle-type="<?= htmlspecialchars($d['vehicle_type']) ?>"
+                                    data-barangay="<?= htmlspecialchars($d['barangay']) ?>"
+                                    data-online="<?= $d['is_online'] ? 'Online' : 'Offline' ?>"
+                                    data-approval="<?= htmlspecialchars(ucfirst($d['approval_status'])) ?>"
+                                    data-joined="<?= htmlspecialchars(date('M j, Y', strtotime($d['created_at']))) ?>"
+                                    data-plate-proof="<?= $d['plate_proof_path'] ? htmlspecialchars(BASE_URL . '/' . ltrim($d['plate_proof_path'], '/')) : '' ?>"
+                                    data-license-proof="<?= $d['license_proof_path'] ? htmlspecialchars(BASE_URL . '/' . ltrim($d['license_proof_path'], '/')) : '' ?>"
+                                    data-photo="<?= $d['photo_path'] ? htmlspecialchars(BASE_URL . '/' . ltrim($d['photo_path'], '/')) : '' ?>"
+                                    onclick="openDriverModal(this)">View</button>
                             <form method="POST" style="display:contents">
                                 <?= csrf_field() ?>
                                 <input type="hidden" name="user_id" value="<?= $d['id'] ?>">
@@ -178,10 +228,77 @@ require_once __DIR__ . '/includes/header.php';
                 </tr>
                 <?php endforeach; ?>
                 <?php if (empty($drivers)): ?>
-                <tr><td colspan="7" style="text-align:center;padding:48px;color:var(--text-muted)">No drivers found</td></tr>
+                <tr><td colspan="8" style="text-align:center;padding:48px;color:var(--text-muted)">No drivers found</td></tr>
                 <?php endif; ?>
             </tbody>
         </table>
+    </div>
+</div>
+
+<div class="modal-overlay" id="driverDetailOverlay">
+    <div class="modal-box" style="max-width:640px">
+        <div class="modal-header">
+            <span class="modal-title">Driver Details</span>
+            <button type="button" class="modal-close" onclick="closeDriverModal()">
+                <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><line x1="18" y1="6" x2="6" y2="18"/><line x1="6" y1="6" x2="18" y2="18"/></svg>
+            </button>
+        </div>
+        <div class="modal-body">
+            <div class="driver-detail-grid">
+                <div class="driver-detail-item">
+                    <span class="form-label">Name</span>
+                    <div class="driver-detail-value" id="dd-name"></div>
+                </div>
+                <div class="driver-detail-item">
+                    <span class="form-label">Account Status</span>
+                    <div class="driver-detail-value" id="dd-status"></div>
+                </div>
+                <div class="driver-detail-item">
+                    <span class="form-label">Email</span>
+                    <div class="driver-detail-value" id="dd-email"></div>
+                </div>
+                <div class="driver-detail-item">
+                    <span class="form-label">Phone</span>
+                    <div class="driver-detail-value" id="dd-phone"></div>
+                </div>
+                <div class="driver-detail-item">
+                    <span class="form-label">License No.</span>
+                    <div class="driver-detail-value" id="dd-license"></div>
+                </div>
+                <div class="driver-detail-item">
+                    <span class="form-label">Plate Number</span>
+                    <div class="driver-detail-value" id="dd-vehicle"></div>
+                </div>
+                <div class="driver-detail-item">
+                    <span class="form-label">Vehicle Type</span>
+                    <div class="driver-detail-value" id="dd-vehicle-type"></div>
+                </div>
+                <div class="driver-detail-item">
+                    <span class="form-label">Barangay</span>
+                    <div class="driver-detail-value" id="dd-barangay"></div>
+                </div>
+                <div class="driver-detail-item">
+                    <span class="form-label">Online Status</span>
+                    <div class="driver-detail-value" id="dd-online"></div>
+                </div>
+                <div class="driver-detail-item">
+                    <span class="form-label">Approval</span>
+                    <div class="driver-detail-value" id="dd-approval"></div>
+                </div>
+                <div class="driver-detail-item">
+                    <span class="form-label">Joined</span>
+                    <div class="driver-detail-value" id="dd-joined"></div>
+                </div>
+            </div>
+
+            <div>
+                <span class="form-label" style="margin-top:6px">Verification Documents</span>
+                <div class="driver-detail-grid" id="dd-docs" style="grid-template-columns:repeat(3,1fr)"></div>
+            </div>
+        </div>
+        <div class="modal-footer">
+            <button type="button" class="btn-ghost" onclick="closeDriverModal()">Close</button>
+        </div>
     </div>
 </div>
 
@@ -190,6 +307,53 @@ document.getElementById('flash-msg') && setTimeout(() => {
     document.getElementById('flash-msg').style.opacity = '0';
     document.getElementById('flash-msg').style.transition = 'opacity .4s';
 }, 3000);
+
+function openDriverModal(btn) {
+    var d = btn.dataset;
+    document.getElementById('dd-name').textContent = d.name;
+    document.getElementById('dd-status').textContent = d.status;
+    document.getElementById('dd-email').textContent = d.email;
+    document.getElementById('dd-phone').textContent = d.phone;
+    document.getElementById('dd-license').textContent = d.license;
+    document.getElementById('dd-vehicle').textContent = d.vehicle;
+    document.getElementById('dd-vehicle-type').textContent = d.vehicleType;
+    document.getElementById('dd-barangay').textContent = d.barangay;
+    document.getElementById('dd-online').textContent = d.online;
+    document.getElementById('dd-approval').textContent = d.approval;
+    document.getElementById('dd-joined').textContent = d.joined;
+
+    var docs = [
+        ['Plate Proof', d.plateProof],
+        ['License Proof', d.licenseProof],
+        ['Driver Photo', d.photo],
+    ];
+    var imageExt = ['jpg', 'jpeg', 'png', 'gif', 'webp'];
+    var docsEl = document.getElementById('dd-docs');
+    docsEl.innerHTML = '';
+    docs.forEach(function (doc) {
+        var label = doc[0], url = doc[1];
+        var card = document.createElement('div');
+        card.className = 'driver-doc-card';
+        if (!url) {
+            card.innerHTML = '<span class="form-label">' + label + '</span><span class="text-muted">Not provided</span>';
+            docsEl.appendChild(card);
+            return;
+        }
+        var ext = url.split('.').pop().toLowerCase();
+        var preview = imageExt.indexOf(ext) !== -1
+            ? '<img src="' + url + '" alt="' + label + '">'
+            : '';
+        card.innerHTML = '<span class="form-label">' + label + '</span>' + preview +
+            '<a href="' + url + '" target="_blank" rel="noopener" class="btn-ghost">View Full</a>';
+        docsEl.appendChild(card);
+    });
+
+    document.getElementById('driverDetailOverlay').classList.add('open');
+}
+
+function closeDriverModal() {
+    document.getElementById('driverDetailOverlay').classList.remove('open');
+}
 </script>
 
 <?php require_once __DIR__ . '/includes/footer.php'; ?>

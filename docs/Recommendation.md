@@ -1,3 +1,7 @@
-1. Include graph for the history of booking
-2. Include graph for the total registrants of tricycle driver per barangay
-3. Include total registered driver vs. Unregistered (this is the aproved or not approved yet ok)
+1. Include Verification for Plate N# and License #
+   Driver Registration it should also have a verification like this
+   Plate Number : Textbox
+   upload a Proof
+   Drivers Licence : Textbox
+   Upload a proof
+   add also a feature that the driver should upload a picture of him and his Trycle
