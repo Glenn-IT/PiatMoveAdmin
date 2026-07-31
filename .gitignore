@@ -1,0 +1,4 @@
+/uploads/*
+!/uploads/drivers
+/uploads/drivers/*
+!/uploads/drivers/.gitkeep

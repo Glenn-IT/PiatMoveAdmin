@@ -4,7 +4,7 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title><?= htmlspecialchars($page_title ?? 'PiatMove Admin') ?> — PiatMove Admin</title>
-    <link href="<?= BASE_URL ?>/assets/css/admin.css" rel="stylesheet">
+    <link href="<?= BASE_URL ?>/assets/css/admin.css?v=<?= filemtime(__DIR__ . '/../assets/css/admin.css') ?>" rel="stylesheet">
 </head>
 <body>
 

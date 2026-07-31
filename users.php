@@ -2,6 +2,7 @@
 require_once __DIR__ . '/config.php';
 require_once __DIR__ . '/includes/db.php';
 require_once __DIR__ . '/includes/auth.php';
+require_once __DIR__ . '/includes/uploads.php';
 
 $db  = get_db();
 $msg = '';
@@ -43,8 +44,12 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
 
         if ($form['role'] === 'driver') {
             if ($form['license_no'] === '') $create_errors['license_no'] = 'License number is required.';
-            if ($form['vehicle_no'] === '')  $create_errors['vehicle_no'] = 'Vehicle number is required.';
+            if ($form['vehicle_no'] === '')  $create_errors['vehicle_no'] = 'Plate number is required.';
             if ($form['barangay'] === '')    $create_errors['barangay']  = 'Barangay is required.';
+
+            if (empty($_FILES['plate_proof']['name']))   $create_errors['plate_proof']   = 'Proof of plate number is required.';
+            if (empty($_FILES['license_proof']['name'])) $create_errors['license_proof'] = 'Proof of license is required.';
+            if (empty($_FILES['driver_photo']['name']))  $create_errors['driver_photo']  = 'A photo of the driver with his tricycle is required.';
         }
 
         if (!$create_errors) {
@@ -53,6 +58,21 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
             if ($exists->fetch()) {
                 $create_errors['email'] = 'A user with this email already exists.';
             }
+        }
+
+        $plateProofPath = null;
+        $licenseProofPath = null;
+        $driverPhotoPath = null;
+
+        if (!$create_errors && $form['role'] === 'driver') {
+            [$ok, $result] = handle_proof_upload('plate_proof', 'drivers');
+            if (!$ok) { $create_errors['plate_proof'] = $result; } else { $plateProofPath = $result; }
+
+            [$ok, $result] = handle_proof_upload('license_proof', 'drivers');
+            if (!$ok) { $create_errors['license_proof'] = $result; } else { $licenseProofPath = $result; }
+
+            [$ok, $result] = handle_proof_upload('driver_photo', 'drivers', ['jpg', 'jpeg', 'png']);
+            if (!$ok) { $create_errors['driver_photo'] = $result; } else { $driverPhotoPath = $result; }
         }
 
         if (!$create_errors) {
@@ -69,8 +89,8 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
             $newUserId = (int)$db->lastInsertId();
 
             if ($form['role'] === 'driver') {
-                $db->prepare('INSERT INTO driver_info (user_id, license_no, vehicle_no, vehicle_type, barangay, approval_status) VALUES (?, ?, ?, ?, ?, ?)')
-                   ->execute([$newUserId, $form['license_no'], $form['vehicle_no'], $form['vehicle_type'], $form['barangay'], 'approved']);
+                $db->prepare('INSERT INTO driver_info (user_id, license_no, vehicle_no, vehicle_type, barangay, plate_proof_path, license_proof_path, photo_path, approval_status) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?)')
+                   ->execute([$newUserId, $form['license_no'], $form['vehicle_no'], $form['vehicle_type'], $form['barangay'], $plateProofPath, $licenseProofPath, $driverPhotoPath, 'approved']);
             }
             $db->commit();
 
@@ -229,7 +249,7 @@ require_once __DIR__ . '/includes/header.php';
 
 <div class="modal-overlay<?= $open_modal ? ' open' : '' ?>" id="addUserOverlay">
     <div class="modal-box">
-        <form method="POST">
+        <form method="POST" enctype="multipart/form-data">
             <?= csrf_field() ?>
             <input type="hidden" name="action" value="create">
             <div class="modal-header">
@@ -277,9 +297,27 @@ require_once __DIR__ . '/includes/header.php';
                         <?php if (!empty($create_errors['license_no'])): ?><div class="form-error"><?= htmlspecialchars($create_errors['license_no']) ?></div><?php endif; ?>
                     </div>
                     <div>
-                        <label class="form-label" for="au-vehicle-no">Vehicle No.</label>
+                        <label class="form-label" for="au-license-proof">Proof of License</label>
+                        <label class="file-upload" id="au-license-proof-wrap" for="au-license-proof">
+                            <span class="file-upload-btn">Choose File</span>
+                            <span class="file-upload-name">No file chosen</span>
+                        </label>
+                        <input type="file" name="license_proof" id="au-license-proof" class="file-upload-input" accept="image/*,.pdf">
+                        <?php if (!empty($create_errors['license_proof'])): ?><div class="form-error"><?= htmlspecialchars($create_errors['license_proof']) ?></div><?php endif; ?>
+                    </div>
+                    <div>
+                        <label class="form-label" for="au-vehicle-no">Plate Number</label>
                         <input type="text" name="vehicle_no" id="au-vehicle-no" class="form-input" value="<?= htmlspecialchars($form['vehicle_no']) ?>">
                         <?php if (!empty($create_errors['vehicle_no'])): ?><div class="form-error"><?= htmlspecialchars($create_errors['vehicle_no']) ?></div><?php endif; ?>
+                    </div>
+                    <div>
+                        <label class="form-label" for="au-plate-proof">Proof of Plate Number</label>
+                        <label class="file-upload" id="au-plate-proof-wrap" for="au-plate-proof">
+                            <span class="file-upload-btn">Choose File</span>
+                            <span class="file-upload-name">No file chosen</span>
+                        </label>
+                        <input type="file" name="plate_proof" id="au-plate-proof" class="file-upload-input" accept="image/*,.pdf">
+                        <?php if (!empty($create_errors['plate_proof'])): ?><div class="form-error"><?= htmlspecialchars($create_errors['plate_proof']) ?></div><?php endif; ?>
                     </div>
                     <div>
                         <label class="form-label" for="au-vehicle-type">Vehicle Type</label>
@@ -300,6 +338,15 @@ require_once __DIR__ . '/includes/header.php';
                             <?php endforeach; ?>
                         </select>
                         <?php if (!empty($create_errors['barangay'])): ?><div class="form-error"><?= htmlspecialchars($create_errors['barangay']) ?></div><?php endif; ?>
+                    </div>
+                    <div>
+                        <label class="form-label" for="au-driver-photo">Photo of Driver with Tricycle</label>
+                        <label class="file-upload" id="au-driver-photo-wrap" for="au-driver-photo">
+                            <span class="file-upload-btn">Choose File</span>
+                            <span class="file-upload-name">No file chosen</span>
+                        </label>
+                        <input type="file" name="driver_photo" id="au-driver-photo" class="file-upload-input" accept="image/*">
+                        <?php if (!empty($create_errors['driver_photo'])): ?><div class="form-error"><?= htmlspecialchars($create_errors['driver_photo']) ?></div><?php endif; ?>
                     </div>
                 </div>
             </div>
@@ -334,6 +381,21 @@ if (auPhone) {
         this.value = this.value.replace(/\D/g, '').slice(0, 11);
     });
 }
+
+document.querySelectorAll('.file-upload-input').forEach(function (input) {
+    input.addEventListener('change', function () {
+        var wrap = document.getElementById(this.id + '-wrap');
+        if (!wrap) return;
+        var nameEl = wrap.querySelector('.file-upload-name');
+        if (this.files && this.files.length) {
+            nameEl.textContent = this.files[0].name;
+            wrap.classList.add('has-file');
+        } else {
+            nameEl.textContent = 'No file chosen';
+            wrap.classList.remove('has-file');
+        }
+    });
+});
 </script>
 
 <?php require_once __DIR__ . '/includes/footer.php'; ?>
