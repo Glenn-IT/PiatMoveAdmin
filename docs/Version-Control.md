@@ -62,13 +62,15 @@ Each `git tag vX.XX` creates a **permanent, immutable snapshot** of the repo at 
 | v2.00   | v2.00    | 2e47240572d248f5591ca9f9b39b9561c4ae781c |
 | v4.00   | v4.00    | 5ca91b86359848d7222bd880300814c15c5d2468 |
 | v5.00   | v5.00    | 6b7b0ca6157c40a81fb7a39cbf4190ae27f1719c |
-| v4.Recommendation | v4.Recommendation | e392407b6f1fb4151f4894958a002e9641c4d841 |
+| v4.Recommendation | v4.Recommendation | 0d310333fd4b12f4891107afb75ea12799943fc2 |
 
 **Note on `v4.Recommendation`:** by the time this tag was created, `main` had already moved past `v4.00` (through `v5.00` and beyond), so it could not be created by simply re-pointing a tag to `main` HEAD — that would have shown the full v5.00 system instead of the v4.00 snapshot. It was created via a true cherry-pick per `docs/Cherry-Pick-Setup.md`: branched off the `v4.00` tag, cherry-picked only the driver-verification feature commit (`96185b8`) onto that branch, then tagged the result. `main` was not modified.
 
 It was later updated the same way when the driver-verification feature was split into separate "Photo of Driver" and "Photo of Tricycle" uploads on `main` (commit `9e549d7`): branched off the then-current `v4.Recommendation` tag, cherry-picked `9e549d7` onto that branch (clean, no conflicts), re-pointed the tag to the resulting commit (`d02c6ca`), deleted the temp branch. `main` was not modified.
 
 It was updated a third time to bring in the Reports page enhancements: branched off the then-current `v4.Recommendation` tag, cherry-picked `b8bcdb0` (print header, print button, and a legend for the booking-history chart on `report.php`/`includes/charts.php`/`assets/css/admin.css`) and `273bee5` (sample August 2026 booking/driver data so the report charts have something to show) onto that branch — both applied clean, no conflicts — re-pointed the tag to the resulting commit (`e392407`), deleted the temp branch. `main` was not modified.
+
+It was updated a fourth time to bring in the booking-history chart axis labels: branched off the then-current `v4.Recommendation` tag, cherry-picked `3cf4073` (dynamic x-axis labels per filter granularity — hours for Today, weekdays for This Week, dates for This Month/Last 30 Days, years for All Time — plus numeric y-axis scale labels, on `report.php`/`includes/charts.php`/`assets/css/admin.css`) onto that branch — applied clean, no conflicts — re-pointed the tag to the resulting commit (`0d31033`), deleted the temp branch. `main` was not modified.
 
 After all versions are pushed, fill in the hash column by running:
 
