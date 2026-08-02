@@ -66,7 +66,11 @@ function render_booking_history_chart(array $history, string $label = 'Booking h
     $firstLabel = htmlspecialchars(date('M j', strtotime($dates[0])));
     $lastLabel  = htmlspecialchars(date('M j', strtotime($dates[$n - 1])));
 
-    return $svg . '<div class="chart-svg-labels"><span>' . $firstLabel . '</span><span>' . $lastLabel . '</span></div>';
+    $legend = '<div class="chart-legend"><span class="chart-legend-item">'
+            . '<span class="chart-legend-dot" style="background:var(--blue-600)"></span>' . htmlspecialchars($label)
+            . '</span></div>';
+
+    return $svg . '<div class="chart-svg-labels"><span>' . $firstLabel . '</span><span>' . $lastLabel . '</span></div>' . $legend;
 }
 
 function render_bar_rows(array $items, string $color, string $emptyText): string {
