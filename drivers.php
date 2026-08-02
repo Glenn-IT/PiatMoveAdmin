@@ -27,7 +27,7 @@ $search = trim($_GET['q'] ?? '');
 
 $base_sql = "SELECT u.id, u.name, u.email, u.phone, u.status, u.created_at,
                     d.license_no, d.vehicle_no, d.vehicle_type, d.barangay, d.approval_status, d.is_online,
-                    d.plate_proof_path, d.license_proof_path, d.photo_path
+                    d.plate_proof_path, d.license_proof_path, d.photo_path, d.tricycle_photo_path
              FROM users u
              JOIN driver_info d ON d.user_id = u.id";
 
@@ -136,6 +136,7 @@ require_once __DIR__ . '/includes/header.php';
                     'plate_proof_path'   => 'Plate Proof',
                     'license_proof_path' => 'License Proof',
                     'photo_path'         => 'Driver Photo',
+                    'tricycle_photo_path' => 'Tricycle Photo',
                 ];
                 $image_ext = ['jpg', 'jpeg', 'png', 'gif', 'webp'];
                 ?>
@@ -206,6 +207,7 @@ require_once __DIR__ . '/includes/header.php';
                                     data-plate-proof="<?= $d['plate_proof_path'] ? htmlspecialchars(BASE_URL . '/' . ltrim($d['plate_proof_path'], '/')) : '' ?>"
                                     data-license-proof="<?= $d['license_proof_path'] ? htmlspecialchars(BASE_URL . '/' . ltrim($d['license_proof_path'], '/')) : '' ?>"
                                     data-photo="<?= $d['photo_path'] ? htmlspecialchars(BASE_URL . '/' . ltrim($d['photo_path'], '/')) : '' ?>"
+                                    data-tricycle-photo="<?= $d['tricycle_photo_path'] ? htmlspecialchars(BASE_URL . '/' . ltrim($d['tricycle_photo_path'], '/')) : '' ?>"
                                     onclick="openDriverModal(this)">View</button>
                             <form method="POST" style="display:contents">
                                 <?= csrf_field() ?>
@@ -326,6 +328,7 @@ function openDriverModal(btn) {
         ['Plate Proof', d.plateProof],
         ['License Proof', d.licenseProof],
         ['Driver Photo', d.photo],
+        ['Tricycle Photo', d.tricyclePhoto],
     ];
     var imageExt = ['jpg', 'jpeg', 'png', 'gif', 'webp'];
     var docsEl = document.getElementById('dd-docs');
