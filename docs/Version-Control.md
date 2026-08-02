@@ -13,7 +13,7 @@
 | v2.00   | —    | Dashboard/Users/Drivers Build | dashboard.php, users.php, drivers.php | bookings.php, profile.php                                      |
 | v4.00   | —    | Reports Tab           | report.php                              | bookings.php, profile.php                                      |
 | v5.00   | —    | Full System Unlock    | bookings.php, profile.php               | —                                                                |
-| v4.Recommendation | — | Driver plate/license verification uploads + document viewer (cherry-picked onto v4.00) | report.php (same as v4.00) + driver verification feature | bookings.php, profile.php |
+| v4.Recommendation | — | Driver plate/license verification uploads + separate driver/tricycle photo fields + document viewer (cherry-picked onto v4.00) | report.php (same as v4.00) + driver verification feature | bookings.php, profile.php |
 
 ---
 
@@ -62,9 +62,11 @@ Each `git tag vX.XX` creates a **permanent, immutable snapshot** of the repo at 
 | v2.00   | v2.00    | 2e47240572d248f5591ca9f9b39b9561c4ae781c |
 | v4.00   | v4.00    | 5ca91b86359848d7222bd880300814c15c5d2468 |
 | v5.00   | v5.00    | 6b7b0ca6157c40a81fb7a39cbf4190ae27f1719c |
-| v4.Recommendation | v4.Recommendation | 54706b49fb3965174d38cb9192c3e560ca38b9fd |
+| v4.Recommendation | v4.Recommendation | d02c6caffc04a919388a402cd2e940d800e3b042 |
 
 **Note on `v4.Recommendation`:** by the time this tag was created, `main` had already moved past `v4.00` (through `v5.00` and beyond), so it could not be created by simply re-pointing a tag to `main` HEAD — that would have shown the full v5.00 system instead of the v4.00 snapshot. It was created via a true cherry-pick per `docs/Cherry-Pick-Setup.md`: branched off the `v4.00` tag, cherry-picked only the driver-verification feature commit (`96185b8`) onto that branch, then tagged the result. `main` was not modified.
+
+It was later updated the same way when the driver-verification feature was split into separate "Photo of Driver" and "Photo of Tricycle" uploads on `main` (commit `9e549d7`): branched off the then-current `v4.Recommendation` tag, cherry-picked `9e549d7` onto that branch (clean, no conflicts), re-pointed the tag to the resulting commit (`d02c6ca`), deleted the temp branch. `main` was not modified.
 
 After all versions are pushed, fill in the hash column by running:
 
