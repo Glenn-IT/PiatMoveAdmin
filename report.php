@@ -75,22 +75,55 @@ foreach ($bookings as $b) {
 }
 $total_bookings = count($bookings);
 
-// ---- Booking history (daily) within the selected range ----
-$bh_rows = $db->prepare(
-    "SELECT DATE(created_at) AS d, COUNT(*) AS c FROM bookings
-     WHERE created_at BETWEEN ? AND ?
-     GROUP BY DATE(created_at)"
-);
-$bh_rows->execute([$fromDt, $toDt]);
-$bh_rows = $bh_rows->fetchAll(PDO::FETCH_KEY_PAIR);
-
+// ---- Booking history within the selected range, bucketed per filter granularity ----
 $booking_history = [];
-$dayCursor = strtotime($from);
-$dayEnd    = strtotime($to);
-while ($dayCursor <= $dayEnd) {
-    $d = date('Y-m-d', $dayCursor);
-    $booking_history[$d] = (int)($bh_rows[$d] ?? 0);
-    $dayCursor = strtotime('+1 day', $dayCursor);
+$bh_xlabels = [];
+
+if ($range === 'today') {
+    // Hourly buckets across the day
+    $bh_stmt = $db->prepare(
+        "SELECT HOUR(created_at) AS k, COUNT(*) AS c FROM bookings
+         WHERE created_at BETWEEN ? AND ?
+         GROUP BY HOUR(created_at)"
+    );
+    $bh_stmt->execute([$fromDt, $toDt]);
+    $bh_rows = $bh_stmt->fetchAll(PDO::FETCH_KEY_PAIR);
+    for ($hr = 0; $hr <= 23; $hr++) {
+        $booking_history[$hr] = (int)($bh_rows[$hr] ?? 0);
+        $bh_xlabels[] = date('g A', strtotime(sprintf('%02d:00', $hr)));
+    }
+} elseif ($range === 'all') {
+    // Yearly buckets
+    $minYear = (int)($db->query("SELECT MIN(YEAR(created_at)) FROM bookings")->fetchColumn() ?: date('Y'));
+    $curYear = (int)date('Y');
+    $bh_stmt = $db->prepare(
+        "SELECT YEAR(created_at) AS k, COUNT(*) AS c FROM bookings
+         WHERE created_at BETWEEN ? AND ?
+         GROUP BY YEAR(created_at)"
+    );
+    $bh_stmt->execute([$fromDt, $toDt]);
+    $bh_rows = $bh_stmt->fetchAll(PDO::FETCH_KEY_PAIR);
+    for ($y = $minYear; $y <= $curYear; $y++) {
+        $booking_history[$y] = (int)($bh_rows[$y] ?? 0);
+        $bh_xlabels[] = (string)$y;
+    }
+} else {
+    // Daily buckets — weekday names for "week", calendar dates otherwise
+    $bh_stmt = $db->prepare(
+        "SELECT DATE(created_at) AS d, COUNT(*) AS c FROM bookings
+         WHERE created_at BETWEEN ? AND ?
+         GROUP BY DATE(created_at)"
+    );
+    $bh_stmt->execute([$fromDt, $toDt]);
+    $bh_rows = $bh_stmt->fetchAll(PDO::FETCH_KEY_PAIR);
+    $dayCursor = strtotime($from);
+    $dayEnd    = strtotime($to);
+    while ($dayCursor <= $dayEnd) {
+        $d = date('Y-m-d', $dayCursor);
+        $booking_history[$d] = (int)($bh_rows[$d] ?? 0);
+        $bh_xlabels[] = $range === 'week' ? date('D', $dayCursor) : date('M j', $dayCursor);
+        $dayCursor = strtotime('+1 day', $dayCursor);
+    }
 }
 
 // ---- Driver registrations within the selected range ----
@@ -213,7 +246,7 @@ require_once __DIR__ . '/includes/header.php';
         <span class="text-muted" style="font-size:12px"><?= htmlspecialchars($range_labels[$range]) ?></span>
     </div>
     <div class="chart-panel-body">
-        <?= render_booking_history_chart($booking_history, 'Booking history for selected range') ?>
+        <?= render_booking_history_chart($booking_history, 'Booking history for selected range', $bh_xlabels) ?>
     </div>
 </div>
 
