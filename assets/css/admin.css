@@ -1105,6 +1105,20 @@ a { color: var(--text-link); }
   color: var(--text-subtle);
 }
 
+.chart-svg-labels-abs {
+  position: relative;
+  height: 14px;
+  padding: 4px 0 0;
+}
+
+.chart-svg-labels-abs span {
+  position: absolute;
+  transform: translateX(-50%);
+  font-size: 11px;
+  color: var(--text-subtle);
+  white-space: nowrap;
+}
+
 .chart-legend {
   display: flex;
   flex-wrap: wrap;

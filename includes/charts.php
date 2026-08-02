@@ -15,17 +15,18 @@ function status_badge(string $status): string {
          . '</span>';
 }
 
-function render_booking_history_chart(array $history, string $label = 'Booking history'): string {
+function render_booking_history_chart(array $history, string $label = 'Booking history', array $xLabels = []): string {
     $n = count($history);
     if ($n === 0) return '<div class="chart-empty">No booking data yet.</div>';
 
     $values  = array_values($history);
-    $dates   = array_keys($history);
+    $keys    = array_keys($history);
+    $labels  = $xLabels ?: array_map(fn($d) => date('M j', strtotime($d)), $keys);
     $maxVal  = max($values);
     $axisMax = $maxVal > 0 ? $maxVal : 4;
 
     $w = 720; $h = 200;
-    $padL = 10; $padR = 10; $padT = 12; $padB = 10;
+    $padL = 34; $padR = 10; $padT = 12; $padB = 10;
     $plotW = $w - $padL - $padR;
     $plotH = $h - $padT - $padB;
 
@@ -33,13 +34,15 @@ function render_booking_history_chart(array $history, string $label = 'Booking h
     for ($i = 0; $i < $n; $i++) {
         $x = $padL + ($n > 1 ? $i * ($plotW / ($n - 1)) : $plotW / 2);
         $y = $padT + $plotH - ($values[$i] / $axisMax) * $plotH;
-        $points[] = [$x, $y, $values[$i], $dates[$i]];
+        $points[] = [$x, $y, $values[$i], $labels[$i]];
     }
 
     $gridLines = '';
     for ($g = 0; $g <= 3; $g++) {
         $gy = $padT + ($plotH / 3) * $g;
         $gridLines .= '<line x1="' . $padL . '" y1="' . $gy . '" x2="' . ($w - $padR) . '" y2="' . $gy . '" stroke="var(--gray-200)" stroke-width="1"/>';
+        $gval = (int) round($axisMax - ($axisMax / 3) * $g);
+        $gridLines .= '<text x="' . ($padL - 6) . '" y="' . round($gy + 3, 1) . '" text-anchor="end" font-size="10" fill="var(--text-muted)">' . $gval . '</text>';
     }
 
     $linePath = 'M ' . implode(' L ', array_map(fn($p) => round($p[0], 1) . ' ' . round($p[1], 1), $points));
@@ -48,8 +51,8 @@ function render_booking_history_chart(array $history, string $label = 'Booking h
         . ' L ' . round($points[0][0], 1) . ' ' . ($padT + $plotH) . ' Z';
 
     $markers = '';
-    foreach ($points as [$x, $y, $val, $date]) {
-        $tip = date('M j', strtotime($date)) . ': ' . $val . ' booking' . ($val === 1 ? '' : 's');
+    foreach ($points as [$x, $y, $val, $lbl]) {
+        $tip = $lbl . ': ' . $val . ' booking' . ($val === 1 ? '' : 's');
         if ($val > 0) {
             $markers .= '<circle cx="' . round($x, 1) . '" cy="' . round($y, 1) . '" r="3.5" fill="var(--blue-600)"><title>' . htmlspecialchars($tip) . '</title></circle>';
         }
@@ -63,14 +66,24 @@ function render_booking_history_chart(array $history, string $label = 'Booking h
          . $markers
          . '</svg>';
 
-    $firstLabel = htmlspecialchars(date('M j', strtotime($dates[0])));
-    $lastLabel  = htmlspecialchars(date('M j', strtotime($dates[$n - 1])));
+    $maxTicks = 8;
+    $step = max(1, (int) ceil($n / $maxTicks));
+    $xLabelsHtml = '';
+    for ($i = 0; $i < $n; $i += $step) {
+        $pct = round(($points[$i][0] / $w) * 100, 2);
+        $xLabelsHtml .= '<span style="left:' . $pct . '%">' . htmlspecialchars($points[$i][3]) . '</span>';
+    }
+    $lastIdx = $n - 1;
+    if (($lastIdx % $step) !== 0) {
+        $pct = round(($points[$lastIdx][0] / $w) * 100, 2);
+        $xLabelsHtml .= '<span style="left:' . $pct . '%">' . htmlspecialchars($points[$lastIdx][3]) . '</span>';
+    }
 
     $legend = '<div class="chart-legend"><span class="chart-legend-item">'
             . '<span class="chart-legend-dot" style="background:var(--blue-600)"></span>' . htmlspecialchars($label)
             . '</span></div>';
 
-    return $svg . '<div class="chart-svg-labels"><span>' . $firstLabel . '</span><span>' . $lastLabel . '</span></div>' . $legend;
+    return $svg . '<div class="chart-svg-labels-abs">' . $xLabelsHtml . '</div>' . $legend;
 }
 
 function render_bar_rows(array $items, string $color, string $emptyText): string {
