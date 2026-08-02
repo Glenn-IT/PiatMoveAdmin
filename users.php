@@ -49,7 +49,8 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
 
             if (empty($_FILES['plate_proof']['name']))   $create_errors['plate_proof']   = 'Proof of plate number is required.';
             if (empty($_FILES['license_proof']['name'])) $create_errors['license_proof'] = 'Proof of license is required.';
-            if (empty($_FILES['driver_photo']['name']))  $create_errors['driver_photo']  = 'A photo of the driver with his tricycle is required.';
+            if (empty($_FILES['driver_photo']['name']))  $create_errors['driver_photo']  = 'A photo of the driver is required.';
+            if (empty($_FILES['tricycle_photo']['name'])) $create_errors['tricycle_photo'] = 'A photo of the tricycle is required.';
         }
 
         if (!$create_errors) {
@@ -63,6 +64,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
         $plateProofPath = null;
         $licenseProofPath = null;
         $driverPhotoPath = null;
+        $tricyclePhotoPath = null;
 
         if (!$create_errors && $form['role'] === 'driver') {
             [$ok, $result] = handle_proof_upload('plate_proof', 'drivers');
@@ -73,6 +75,9 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
 
             [$ok, $result] = handle_proof_upload('driver_photo', 'drivers', ['jpg', 'jpeg', 'png']);
             if (!$ok) { $create_errors['driver_photo'] = $result; } else { $driverPhotoPath = $result; }
+
+            [$ok, $result] = handle_proof_upload('tricycle_photo', 'drivers', ['jpg', 'jpeg', 'png']);
+            if (!$ok) { $create_errors['tricycle_photo'] = $result; } else { $tricyclePhotoPath = $result; }
         }
 
         if (!$create_errors) {
@@ -89,8 +94,8 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
             $newUserId = (int)$db->lastInsertId();
 
             if ($form['role'] === 'driver') {
-                $db->prepare('INSERT INTO driver_info (user_id, license_no, vehicle_no, vehicle_type, barangay, plate_proof_path, license_proof_path, photo_path, approval_status) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?)')
-                   ->execute([$newUserId, $form['license_no'], $form['vehicle_no'], $form['vehicle_type'], $form['barangay'], $plateProofPath, $licenseProofPath, $driverPhotoPath, 'approved']);
+                $db->prepare('INSERT INTO driver_info (user_id, license_no, vehicle_no, vehicle_type, barangay, plate_proof_path, license_proof_path, photo_path, tricycle_photo_path, approval_status) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?)')
+                   ->execute([$newUserId, $form['license_no'], $form['vehicle_no'], $form['vehicle_type'], $form['barangay'], $plateProofPath, $licenseProofPath, $driverPhotoPath, $tricyclePhotoPath, 'approved']);
             }
             $db->commit();
 
@@ -340,13 +345,22 @@ require_once __DIR__ . '/includes/header.php';
                         <?php if (!empty($create_errors['barangay'])): ?><div class="form-error"><?= htmlspecialchars($create_errors['barangay']) ?></div><?php endif; ?>
                     </div>
                     <div>
-                        <label class="form-label" for="au-driver-photo">Photo of Driver with Tricycle</label>
+                        <label class="form-label" for="au-driver-photo">Photo of Driver</label>
                         <label class="file-upload" id="au-driver-photo-wrap" for="au-driver-photo">
                             <span class="file-upload-btn">Choose File</span>
                             <span class="file-upload-name">No file chosen</span>
                         </label>
                         <input type="file" name="driver_photo" id="au-driver-photo" class="file-upload-input" accept="image/*">
                         <?php if (!empty($create_errors['driver_photo'])): ?><div class="form-error"><?= htmlspecialchars($create_errors['driver_photo']) ?></div><?php endif; ?>
+                    </div>
+                    <div>
+                        <label class="form-label" for="au-tricycle-photo">Photo of Tricycle</label>
+                        <label class="file-upload" id="au-tricycle-photo-wrap" for="au-tricycle-photo">
+                            <span class="file-upload-btn">Choose File</span>
+                            <span class="file-upload-name">No file chosen</span>
+                        </label>
+                        <input type="file" name="tricycle_photo" id="au-tricycle-photo" class="file-upload-input" accept="image/*">
+                        <?php if (!empty($create_errors['tricycle_photo'])): ?><div class="form-error"><?= htmlspecialchars($create_errors['tricycle_photo']) ?></div><?php endif; ?>
                     </div>
                 </div>
             </div>

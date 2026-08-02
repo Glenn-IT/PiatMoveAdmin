@@ -91,6 +91,7 @@ CREATE TABLE `driver_info` (
   `plate_proof_path` varchar(255) DEFAULT NULL,
   `license_proof_path` varchar(255) DEFAULT NULL,
   `photo_path` varchar(255) DEFAULT NULL,
+  `tricycle_photo_path` varchar(255) DEFAULT NULL,
   `approval_status` enum('pending','approved','rejected') NOT NULL DEFAULT 'pending',
   `is_online` tinyint(1) NOT NULL DEFAULT 0,
   `current_lat` decimal(10,7) DEFAULT NULL,
