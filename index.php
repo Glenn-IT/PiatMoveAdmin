@@ -28,21 +28,25 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
         $ok    = false;
 
         if ($email && $pass) {
-            $db   = get_db();
-            // BINARY forces a case-sensitive comparison (column collation is case-insensitive by default)
-            $stmt = $db->prepare('SELECT id, name, password FROM admins WHERE BINARY email = BINARY ?');
-            $stmt->execute([$email]);
-            $admin = $stmt->fetch();
+            try {
+                $db   = get_db();
+                // BINARY forces a case-sensitive comparison (column collation is case-insensitive by default)
+                $stmt = $db->prepare('SELECT id, name, password FROM admins WHERE BINARY email = BINARY ?');
+                $stmt->execute([$email]);
+                $admin = $stmt->fetch();
 
-            if ($admin && password_verify($pass, $admin['password'])) {
-                $ok = true;
-                session_regenerate_id(true);
-                unset($_SESSION['login_attempts'], $_SESSION['lockout_until']);
-                $_SESSION['admin_id']   = $admin['id'];
-                $_SESSION['admin_name'] = $admin['name'];
-                $_SESSION['csrf_token'] = bin2hex(random_bytes(32));
-                header('Location: ' . BASE_URL . '/dashboard.php');
-                exit;
+                if ($admin && password_verify($pass, $admin['password'])) {
+                    $ok = true;
+                    session_regenerate_id(true);
+                    unset($_SESSION['login_attempts'], $_SESSION['lockout_until']);
+                    $_SESSION['admin_id']   = $admin['id'];
+                    $_SESSION['admin_name'] = $admin['name'];
+                    $_SESSION['csrf_token'] = bin2hex(random_bytes(32));
+                    header('Location: ' . BASE_URL . '/dashboard.php');
+                    exit;
+                }
+            } catch (PDOException $e) {
+                $error = 'Database error: ' . $e->getMessage();
             }
         }
 
