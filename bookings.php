@@ -79,6 +79,7 @@ require_once __DIR__ . '/includes/header.php';
                     <th>Driver</th>
                     <th>Pickup</th>
                     <th>Dropoff</th>
+                    <th>Fare &amp; Discount</th>
                     <th>Status</th>
                     <th>Date</th>
                 </tr>
@@ -106,6 +107,19 @@ require_once __DIR__ . '/includes/header.php';
                         <span style="font-size:13px;color:var(--text-body)"><?= htmlspecialchars($b['dropoff_address']) ?></span>
                     </td>
                     <td>
+                        <div class="cell-strong">₱<?= number_format($b['fare'] ?? ($b['passenger_count'] ?? 1) * 20, 2) ?></div>
+                        <div class="cell-sub">
+                            <?= (int)($b['passenger_count'] ?? 1) ?> pax
+                            <?php 
+                            $disc = strtolower($b['discount_type'] ?? 'regular');
+                            if ($disc !== 'regular'): 
+                                $disc_name = ucfirst($disc);
+                            ?>
+                                • <span style="color:#15803D;font-weight:600"><?= $disc_name ?> (20% OFF)</span>
+                            <?php endif; ?>
+                        </div>
+                    </td>
+                    <td>
                         <?php
                         $cls = $badge_map[$b['status']] ?? 'neutral';
                         echo "<span class=\"badge badge-{$cls}\">" . ucfirst($b['status']) . "</span>";
@@ -115,7 +129,7 @@ require_once __DIR__ . '/includes/header.php';
                 </tr>
                 <?php endforeach; ?>
                 <?php if (empty($bookings)): ?>
-                <tr><td colspan="7" style="text-align:center;padding:48px;color:var(--text-muted)">No bookings found</td></tr>
+                <tr><td colspan="8" style="text-align:center;padding:48px;color:var(--text-muted)">No bookings found</td></tr>
                 <?php endif; ?>
             </tbody>
         </table>
