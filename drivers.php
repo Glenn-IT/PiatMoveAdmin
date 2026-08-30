@@ -132,10 +132,23 @@ require_once __DIR__ . '/includes/header.php';
             </thead>
             <tbody>
                 <?php
+                function get_driver_doc_url($path) {
+                    if (!$path) return '';
+                    $clean = ltrim($path, '/');
+                    if (strpos($clean, 'http://') === 0 || strpos($clean, 'https://') === 0) {
+                        return $clean;
+                    }
+                    if (file_exists(__DIR__ . '/' . $clean)) {
+                        return BASE_URL . '/' . $clean;
+                    }
+                    $baseHost = preg_replace('#/admin/?$#i', '', BASE_URL);
+                    return $baseHost . '/api/' . $clean;
+                }
+
                 $doc_labels = [
-                    'plate_proof_path'   => 'Plate Proof',
-                    'license_proof_path' => 'License Proof',
-                    'photo_path'         => 'Driver Photo',
+                    'plate_proof_path'    => 'Plate Proof',
+                    'license_proof_path'  => 'License Proof',
+                    'photo_path'          => 'Driver Photo',
                     'tricycle_photo_path' => 'Tricycle Photo',
                 ];
                 $image_ext = ['jpg', 'jpeg', 'png', 'gif', 'webp'];
@@ -161,11 +174,14 @@ require_once __DIR__ . '/includes/header.php';
                                 if (!$path) continue;
                                 $hasDocs = true;
                                 $ext = strtolower(pathinfo($path, PATHINFO_EXTENSION));
-                                $url = BASE_URL . '/' . ltrim($path, '/');
+                                $url = get_driver_doc_url($path);
+                                $fallbackUrl = preg_replace('#/admin/?$#i', '', BASE_URL) . '/api/' . ltrim($path, '/');
                             ?>
                                 <a href="<?= htmlspecialchars($url) ?>" target="_blank" rel="noopener" title="<?= htmlspecialchars($label) ?>">
                                     <?php if (in_array($ext, $image_ext, true)): ?>
-                                        <img src="<?= htmlspecialchars($url) ?>" alt="<?= htmlspecialchars($label) ?>" style="width:32px;height:32px;object-fit:cover;border-radius:4px;border:1px solid var(--gray-100)">
+                                        <img src="<?= htmlspecialchars($url) ?>" alt="<?= htmlspecialchars($label) ?>" 
+                                             onerror="if(!this.dataset.triedApi){this.dataset.triedApi=1;this.src='<?= htmlspecialchars($fallbackUrl) ?>';this.parentElement.href='<?= htmlspecialchars($fallbackUrl) ?>';}"
+                                             style="width:32px;height:32px;object-fit:cover;border-radius:4px;border:1px solid var(--gray-100)">
                                     <?php else: ?>
                                         <span class="badge badge-neutral"><?= htmlspecialchars($label) ?></span>
                                     <?php endif; ?>
@@ -204,10 +220,10 @@ require_once __DIR__ . '/includes/header.php';
                                     data-online="<?= $d['is_online'] ? 'Online' : 'Offline' ?>"
                                     data-approval="<?= htmlspecialchars(ucfirst($d['approval_status'])) ?>"
                                     data-joined="<?= htmlspecialchars(date('M j, Y', strtotime($d['created_at']))) ?>"
-                                    data-plate-proof="<?= $d['plate_proof_path'] ? htmlspecialchars(BASE_URL . '/' . ltrim($d['plate_proof_path'], '/')) : '' ?>"
-                                    data-license-proof="<?= $d['license_proof_path'] ? htmlspecialchars(BASE_URL . '/' . ltrim($d['license_proof_path'], '/')) : '' ?>"
-                                    data-photo="<?= $d['photo_path'] ? htmlspecialchars(BASE_URL . '/' . ltrim($d['photo_path'], '/')) : '' ?>"
-                                    data-tricycle-photo="<?= $d['tricycle_photo_path'] ? htmlspecialchars(BASE_URL . '/' . ltrim($d['tricycle_photo_path'], '/')) : '' ?>"
+                                    data-plate-proof="<?= $d['plate_proof_path'] ? htmlspecialchars(get_driver_doc_url($d['plate_proof_path'])) : '' ?>"
+                                    data-license-proof="<?= $d['license_proof_path'] ? htmlspecialchars(get_driver_doc_url($d['license_proof_path'])) : '' ?>"
+                                    data-photo="<?= $d['photo_path'] ? htmlspecialchars(get_driver_doc_url($d['photo_path'])) : '' ?>"
+                                    data-tricycle-photo="<?= $d['tricycle_photo_path'] ? htmlspecialchars(get_driver_doc_url($d['tricycle_photo_path'])) : '' ?>"
                                     onclick="openDriverModal(this)">View</button>
                             <form method="POST" style="display:contents">
                                 <?= csrf_field() ?>
@@ -344,7 +360,7 @@ function openDriverModal(btn) {
         }
         var ext = url.split('.').pop().toLowerCase();
         var preview = imageExt.indexOf(ext) !== -1
-            ? '<img src="' + url + '" alt="' + label + '">'
+            ? '<img src="' + url + '" alt="' + label + '" onerror="if(!this.dataset.triedApi){this.dataset.triedApi=1;var fallback=this.src.replace(/\\/admin\\/uploads\\//i, \'/api/uploads/\');this.src=fallback;var a=this.parentElement.querySelector(\'a\');if(a)a.href=fallback;}">'
             : '';
         card.innerHTML = '<span class="form-label">' + label + '</span>' + preview +
             '<a href="' + url + '" target="_blank" rel="noopener" class="btn-ghost">View Full</a>';
