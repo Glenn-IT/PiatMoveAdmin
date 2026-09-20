@@ -124,6 +124,16 @@ require_once __DIR__ . '/includes/header.php';
                         $cls = $badge_map[$b['status']] ?? 'neutral';
                         echo "<span class=\"badge badge-{$cls}\">" . ucfirst($b['status']) . "</span>";
                         ?>
+                        <?php if (!empty($b['rating'])): ?>
+                            <div style="margin-top:5px;font-size:12px;font-weight:700;color:#D97706">
+                                <?= str_repeat('⭐', (int)$b['rating']) ?> <?= (int)$b['rating'] ?>.0
+                            </div>
+                            <?php if (!empty($b['rating_comment'])): ?>
+                                <div class="cell-sub" style="font-style:italic;max-width:160px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap" title="<?= htmlspecialchars($b['rating_comment']) ?>">
+                                    "<?= htmlspecialchars($b['rating_comment']) ?>"
+                                </div>
+                            <?php endif; ?>
+                        <?php endif; ?>
                     </td>
                     <td><span class="text-muted" style="font-size:12px"><?= date('M j, Y g:i A', strtotime($b['created_at'])) ?></span></td>
                 </tr>
